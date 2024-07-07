@@ -20,8 +20,8 @@ class LinkService
         $this->checkLinkExist($dto->userId, $dto->link);
         $shortLink = $this->shortenLink($dto->userId);
 
-
-        $this->linkRepository->create($dto, $shortLink);
+        $link = $this->linkRepository->create($dto, $shortLink);
+        $this->setClickInRedis($link->id, 0);
     }
 
     public function list(int $limit)
@@ -62,7 +62,7 @@ class LinkService
         if (is_null($link)) {
             throw new \Exception('Link not found');
         }
-        $this->setClickInRedis($link->id);
+        $this->setClickInRedis($link->id, 1);
 
         return $link->org_link;
     }
@@ -88,9 +88,9 @@ class LinkService
         return Hashids::encode($maxLinkId + 1, $userId);
     }
 
-    public function setClickInRedis(int $linkId)
+    public function setClickInRedis(int $linkId, $increase)
     {
-        Redis::zincrby('short_link:clicks', '+1', $linkId);
+        Redis::zincrby('short_link:clicks', '+' . $increase, $linkId);
     }
 
     public function getTopShortLink(int $limit)
