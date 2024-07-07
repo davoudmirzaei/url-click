@@ -28,6 +28,9 @@ class LinkService
     {
         $result = [];
         $topLinksId = $this->getTopShortLink($limit);
+        if (empty($topLinksId)) {
+            return [];
+        }
 
         $topLinks = $this->linkRepository->getByIds(array_keys($topLinksId));
         foreach ($topLinks as $topLink) {

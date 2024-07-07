@@ -3,6 +3,8 @@
 namespace App\Http\Api\V1;
 
 use App\Dto\CreateLinkRequestDto;
+use App\Http\Requests\CreateLinkRequest;
+use App\Http\Requests\ListLinkRequest;
 use App\Http\Resources\GetSearchLinkResource;
 use App\Http\Resources\GetUserLinkResource;
 use App\Http\Resources\ListLinkResource;
@@ -17,7 +19,7 @@ class LinkController extends Controller
     ) {
     }
 
-    public function create(Request $request)
+    public function create(CreateLinkRequest $request)
     {
         $dto = CreateLinkRequestDto::getFromRequest($request);
         $this->linkService->create($dto);
@@ -31,9 +33,9 @@ class LinkController extends Controller
         return GetUserLinkResource::collection($result);
     }
 
-    public function list(Request $request)
+    public function list(ListLinkRequest $request)
     {
-        $limit = $request->query->get('limit');
+        $limit  = $request->query->get('limit');
         $result = $this->linkService->list($limit);
 
         return ListLinkResource::collection($result);
