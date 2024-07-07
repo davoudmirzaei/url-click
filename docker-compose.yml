@@ -1,0 +1,74 @@
+version: '3.7'
+services:
+
+    #PHP Service
+    app:
+        build:
+          context: .
+          dockerfile: ./Dockerfile
+        image: ira/php
+        container_name: ira-app
+        restart: unless-stopped
+        tty: true
+        depends_on:
+          - db
+          - redis
+        entrypoint: ./docker/entrypoint-app.sh
+        volumes:
+          - ./:/var/www
+          - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+        networks:
+          - ira-network
+
+    webserver:
+        image: nginx:alpine
+        container_name: ira-nginx
+        restart: always
+        tty: true
+        ports:
+          - "8087:80"
+        volumes:
+          - ./:/var/www
+          - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+        networks:
+          - ira-network
+
+    db:
+        image: mysql:8.0.32
+        container_name: ira-db
+        restart: always
+        tty: true
+        environment:
+          MYSQL_DATABASE: "ira"
+          MYSQL_ROOT_PASSWORD: "root"
+          MYSQL_USER: "ira"
+          MYSQL_PASSWORD: "secret"
+        ports:
+          - "3309:3306"
+        volumes:
+          - iradbdata:/var/lib/mysql/
+          - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+        networks:
+          - ira-network
+
+    redis:
+        image: redis:latest
+        container_name: ira-redis
+        ports:
+          - "6377:6379"
+        volumes:
+          - iraredisdata:/data
+        networks:
+          - ira-network
+
+#Docker Networks
+networks:
+    ira-network:
+        driver: bridge
+
+#Volumes
+volumes:
+    iradbdata:
+        driver: "local"
+    iraredisdata:
+        driver: "local"
